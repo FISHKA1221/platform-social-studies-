@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Макет платформы по обществознанию</title>
+    
+    <!-- Подключаем стили Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Подключаем иконки FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Подключаем React и ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Подключаем Babel для чтения JSX прямо в браузере -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Кастомный скроллбар для эстетики */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Скрытие скроллбара для мобильного меню навигации */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Компонент всплывающих уведомлений
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+            return (
+                <div className={`fixed bottom-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-xl flex items-center z-50 animate-bounce`}>
+                    <i className={`fas ${icon} mr-3 text-xl`}></i>
+                    <span className="font-medium">{message}</span>
+                </div>
+            );
+        };
+
+        function App() {
+            const [currentView, setCurrentView] = useState('split');
+            const [selectedIsland, setSelectedIsland] = useState({ id: 1, name: "Человек и общество" });
+            const [toast, setToast] = useState(null);
+
+            const showToast = (message, type = 'info') => {
+                setToast({ message, type });
+            };
+
+            const sections = [
+                { id: 1, name: "Человек и общество", status: "active" },
+                { id: 2, name: "Государство и право", status: "active" },
+                { id: 3, name: "Культура, образование, наука", status: "active" },
+                { id: 4, name: "Семейная экономика", status: "active" },
+                { id: 5, name: "Россия на пути в будущее", status: "locked" },
+            ];
+
+            // --- ЭКРАН 1: Сплит-скрин (Главная) ---
+            const SplitScreen = () => (
+                <div className="flex flex-col md:flex-row min-h-screen w-full font-sans">
+                    <div 
+                        onClick={() => setCurrentView('student-map')}
+                        className="w-full md:w-1/2 h-[50vh] md:h-screen bg-blue-50 hover:bg-blue-100 transition-all cursor-pointer flex flex-col items-center justify-center p-8 group relative"
+                    >
+                        <div className="absolute top-4 left-4 md:top-8 md:left-8 text-blue-300 opacity-30 md:opacity-50 group-hover:opacity-100 transition-opacity">
+                            <i className="fas fa-map text-6xl md:text-[120px]"></i>
+                        </div>
+                        <div className="bg-white p-6 rounded-full shadow-lg mb-4 md:mb-6 transform group-hover:scale-110 transition-transform z-10 text-blue-500 flex items-center justify-center w-24 h-24 md:w-32 md:h-32">
+                            <i className="fas fa-graduation-cap text-4xl md:text-6xl"></i>
+                        </div>
+                        <h1 className="text-2xl md:text-5xl font-bold text-slate-800 text-center z-10 mb-2 md:mb-4">
+                            Я готовлюсь
+                        </h1>
+                        <p className="text-slate-600 text-center text-sm md:text-lg z-10">
+                            к экзамену или уроку
+                        </p>
+                        <div className="mt-4 md:mt-8 px-6 py-3 bg-blue-500 text-white rounded-full font-medium shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
+                            Начать путь
+                        </div>
+                    </div>
+
+                    <div 
+                        onClick={() => setCurrentView('teacher-login')}
+                        className="w-full md:w-1/2 h-[50vh] md:h-screen bg-slate-800 hover:bg-slate-900 transition-all cursor-pointer flex flex-col items-center justify-center p-8 group relative"
+                    >
+                        <div className="absolute top-4 right-4 md:top-8 md:right-8 text-slate-700 opacity-30 md:opacity-50 group-hover:opacity-100 transition-opacity">
+                            <i className="fas fa-layer-group text-6xl md:text-[120px]"></i>
+                        </div>
+                        <div className="absolute top-4 right-4 md:top-8 md:right-8 text-slate-500 z-10 flex items-center text-sm md:text-base">
+                            <i className="fas fa-lock mr-2"></i> Вход по паролю
+                        </div>
+                        <div className="bg-slate-700 p-6 rounded-2xl shadow-lg mb-4 md:mb-6 transform group-hover:scale-110 transition-transform z-10 text-white flex items-center justify-center w-24 h-24 md:w-32 md:h-32">
+                            <i className="fas fa-briefcase text-4xl md:text-6xl"></i>
+                        </div>
+                        <h1 className="text-2xl md:text-5xl font-bold text-white text-center z-10 mb-2 md:mb-4">
+                            Я преподаю
+                        </h1>
+                        <p className="text-slate-400 text-center text-sm md:text-lg z-10">
+                            Методические материалы и конструктор
+                        </p>
+                        <div className="mt-4 md:mt-8 px-6 py-3 border-2 border-slate-500 text-white rounded-lg font-medium opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
+                            Открыть каталог
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // --- ЭКРАН 1.5: Авторизация учителя ---
+            const TeacherLogin = () => {
+                const [password, setPassword] = useState('');
+                const [error, setError] = useState(false);
+
+                const handleLogin = (e) => {
+                    e.preventDefault();
+                    if (password === '0000') {
+                        setCurrentView('teacher-dash');
+                    } else {
+                        setError(true);
+                        setPassword('');
+                    }
+                };
+
+                return (
+                    <div className="min-h-screen bg-slate-800 flex flex-col items-center justify-center font-sans p-4 relative">
+                        <button 
+                            onClick={() => setCurrentView('split')} 
+                            className="absolute top-6 left-6 text-slate-400 hover:text-white transition flex items-center"
+                        >
+                            <i className="fas fa-arrow-left mr-2"></i> <span className="hidden sm:inline">Вернуться на главную</span>
+                        </button>
+
+                        <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full relative transform transition-all">
+                            <div className="text-center mb-8 mt-2">
+                                <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-800 shadow-inner">
+                                    <i className="fas fa-lock text-3xl"></i>
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-800">Каталог преподавателя</h2>
+                                <p className="text-slate-500 text-sm mt-2">Доступ закрыт паролем (введите 0000)</p>
+                            </div>
+                            
+                            <form onSubmit={handleLogin}>
+                                <div className="mb-6">
+                                    <input 
+                                        type="password" 
+                                        value={password}
+                                        onChange={(e) => { setPassword(e.target.value); setError(false); }}
+                                        className={`w-full border-2 p-4 rounded-xl outline-none transition text-center text-3xl tracking-[1em] font-mono ${
+                                            error ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 focus:border-blue-500'
+                                        }`}
+                                        placeholder="••••"
+                                        maxLength="4"
+                                        autoFocus
+                                    />
+                                    {error && <p className="text-red-500 text-sm mt-2 text-center font-medium animate-pulse"><i className="fas fa-exclamation-circle mr-1"></i> Неверный пароль</p>}
+                                </div>
+                                <button type="submit" className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition shadow-md active:transform active:scale-95">
+                                    Войти
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            };
+
+            // --- ЭКРАН 2: Путь ученика (Острова) ---
+            const StudentMap = () => {
+                const handleIslandClick = (island) => {
+                    if (island.status === 'active') {
+                        setSelectedIsland(island);
+                        setCurrentView('student-module');
+                    } else {
+                        showToast('Этот раздел пока закрыт', 'error');
+                    }
+                };
+
+                return (
+                    <div className="min-h-screen bg-sky-50 font-sans relative overflow-hidden flex flex-col">
+                        <div className="bg-white shadow-sm p-4 flex justify-between items-center relative z-20 shrink-0">
+                            <button onClick={() => setCurrentView('split')} className="flex items-center text-slate-500 hover:text-slate-800">
+                                <i className="fas fa-arrow-left mr-2"></i> <span className="hidden sm:inline">Сменить роль</span>
+                            </button>
+                            <div className="font-bold text-lg sm:text-xl text-blue-600">Карта знаний</div>
+                            <div className="w-8 sm:w-24"></div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto relative z-10 w-full">
+                            <div className="max-w-4xl mx-auto px-4 sm:px-8 py-10 sm:py-20 relative flex flex-col min-h-full">
+                                {/* Линия пути */}
+                                <div className="absolute top-0 bottom-0 left-1/2 transform -translate-x-1/2 w-1 border-l-4 border-dashed border-blue-200 z-0 hidden md:block"></div>
+                                <div className="absolute top-0 bottom-0 left-12 w-1 border-l-4 border-dashed border-blue-200 z-0 md:hidden"></div>
+
+                                {sections.map((island, index) => {
+                                    const isEven = index % 2 === 0;
+                                    return (
+                                        <div key={island.id} className={`relative z-10 flex flex-row items-center mb-12 sm:mb-16 w-full ${isEven ? 'md:justify-start' : 'md:justify-end'}`}>
+                                            
+                                            {/* Блок для десктопа (чередование сторон) */}
+                                            <div className={`hidden md:flex items-center w-1/2 ${isEven ? 'justify-end pr-12' : 'flex-row-reverse justify-end pl-12'}`}>
+                                                <div className={`text-${isEven ? 'right' : 'left'} w-64 ${isEven ? 'mr-6' : 'ml-6'}`}>
+                                                    <h3 className="font-bold text-slate-700 text-lg">{island.name}</h3>
+                                                    <p className={`text-sm font-medium ${island.status === 'active' ? 'text-green-500' : 'text-slate-400'}`}>
+                                                        {island.status === 'active' ? 'Доступно' : 'Закрыто'}
+                                                    </p>
+                                                </div>
+                                                <div 
+                                                    onClick={() => handleIslandClick(island)}
+                                                    className={`w-24 h-24 rounded-full flex items-center justify-center shadow-xl cursor-pointer transform transition-transform hover:scale-110 border-4 z-10 flex-shrink-0 ${
+                                                        island.status === 'active' 
+                                                            ? 'bg-gradient-to-br from-green-400 to-emerald-600 border-white text-white shadow-green-200' 
+                                                            : 'bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    {island.status === 'active' ? <i className="fas fa-play text-3xl ml-1"></i> : <i className="fas fa-lock text-3xl"></i>}
+                                                </div>
+                                            </div>
+
+                                            {/* Блок для мобилок (всё в одну линию) */}
+                                            <div className="md:hidden flex items-center w-full pl-4">
+                                                <div 
+                                                    onClick={() => handleIslandClick(island)}
+                                                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-md cursor-pointer transform active:scale-95 border-2 z-10 flex-shrink-0 ${
+                                                        island.status === 'active' 
+                                                            ? 'bg-gradient-to-br from-green-400 to-emerald-600 border-white text-white' 
+                                                            : 'bg-slate-200 border-slate-300 text-slate-400'
+                                                    }`}
+                                                >
+                                                    {island.status === 'active' ? <i className="fas fa-play text-xl ml-1"></i> : <i className="fas fa-lock text-xl"></i>}
+                                                </div>
+                                                <div className="ml-6 flex-1">
+                                                    <h3 className="font-bold text-slate-700 text-base leading-tight mb-1">{island.name}</h3>
+                                                    <p className={`text-xs font-medium ${island.status === 'active' ? 'text-green-500' : 'text-slate-400'}`}>
+                                                        {island.status === 'active' ? 'Доступно' : 'Закрыто'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // --- ЭКРАН 3: Учебный модуль ученика ---
+            const StudentModule = () => {
+                const [activeTab, setActiveTab] = useState('theory');
+                const [voteResult, setVoteResult] = useState(null);
+                
+                // Состояния для теста
+                const [testSelected, setTestSelected] = useState(null);
+                const [testChecked, setTestChecked] = useState(false);
+
+                const handleTabChange = (tab) => {
+                    setActiveTab(tab);
+                    if (tab !== 'game') setVoteResult(null);
+                    if (tab !== 'tests') {
+                        setTestSelected(null);
+                        setTestChecked(false);
+                    }
+                };
+
+                const handleTestCheck = () => {
+                    if (testSelected === null) {
+                        showToast('Выберите вариант ответа!', 'error');
+                        return;
+                    }
+                    setTestChecked(true);
+                };
+
+                const navItems = [
+                    { id: 'theory', icon: 'fa-book-open', label: 'Термины', category: 'Теория' },
+                    { id: 'persons', icon: 'fa-users', label: 'Персоналии', category: 'Теория' },
+                    { id: 'tests', icon: 'fa-check-square', label: 'Тесты', category: 'Практика' },
+                    { id: 'cases', icon: 'fa-comment', label: 'Кейсы', category: 'Практика' },
+                    { id: 'game', icon: 'fa-thumbs-up', label: 'Игра', category: 'Практика' },
+                ];
+
+                return (
+                    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+                        <div className="bg-white shadow-sm p-4 flex items-center border-b shrink-0 sticky top-0 z-20">
+                            <button onClick={() => setCurrentView('student-map')} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition shrink-0">
+                                <i className="fas fa-arrow-left text-xl"></i>
+                            </button>
+                            <div className="ml-2 sm:ml-4 overflow-hidden">
+                                <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-blue-500">Остров {selectedIsland.id}</div>
+                                <h1 className="text-base sm:text-xl font-bold text-slate-800 truncate">{selectedIsland.name}</h1>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+                            {/* Мобильное меню (горизонтальное) */}
+                            <div className="md:hidden flex overflow-x-auto bg-white border-b shrink-0 hide-scroll p-2 z-10 shadow-sm">
+                                {navItems.map(item => (
+                                    <button 
+                                        key={item.id}
+                                        onClick={() => handleTabChange(item.id)} 
+                                        className={`flex items-center px-4 py-2 mx-1 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
+                                            activeTab === item.id ? 'bg-blue-500 text-white shadow-md' : 'bg-slate-100 text-slate-600'
+                                        }`}
+                                    >
+                                        <i className={`fas ${item.icon} mr-2`}></i> {item.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Боковая панель для ПК */}
+                            <div className="hidden md:flex w-64 bg-white border-r flex-col py-6 shrink-0 z-10 shadow-sm">
+                                <div className="px-6 mb-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Теория</div>
+                                {navItems.filter(i => i.category === 'Теория').map(item => (
+                                    <button key={item.id} onClick={() => handleTabChange(item.id)} className={`flex items-center px-6 py-3 w-full text-left transition-colors ${activeTab === item.id ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                        <i className={`fas ${item.icon} mr-3 w-5 text-center`}></i> {item.label}
+                                    </button>
+                                ))}
+
+                                <div className="px-6 mb-4 mt-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Проверь себя</div>
+                                {navItems.filter(i => i.category === 'Практика').map(item => (
+                                    <button key={item.id} onClick={() => handleTabChange(item.id)} className={`flex items-center px-6 py-3 w-full text-left transition-colors ${activeTab === item.id ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                        <i className={`fas ${item.icon} mr-3 w-5 text-center`}></i> {item.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Область контента */}
+                            <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border p-4 sm:p-8 min-h-[calc(100vh-140px)] md:min-h-[600px]">
+                                    
+                                    {/* --- ТЕРМИНЫ --- */}
+                                    {activeTab === 'theory' && (
+                                        <div className="animate-fade-in">
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center text-slate-800"><i className="fas fa-book-open mr-3 text-blue-500"></i> Основной аппарат</h2>
+                                            {selectedIsland.id === 1 ? (
+                                                <div className="space-y-4">
+                                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition duration-300">
+                                                        <h3 className="font-bold text-lg mb-2 text-blue-700">Общество (в широком смысле)</h3>
+                                                        <p className="text-slate-700 leading-relaxed">Обособившаяся от природы, но тесно с ней связанная часть материального мира, для которой характерны способы взаимодействия людей и формы их объединения.</p>
+                                                    </div>
+                                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition duration-300">
+                                                        <h3 className="font-bold text-lg mb-2 text-blue-700">Личность</h3>
+                                                        <p className="text-slate-700 leading-relaxed">Индивид, являющийся субъектом сознательной деятельности, обладающий совокупностью социально значимых черт, свойств и качеств, которые он реализует в общественной жизни.</p>
+                                                    </div>
+                                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition duration-300">
+                                                        <h3 className="font-bold text-lg mb-2 text-blue-700">Мировоззрение</h3>
+                                                        <p className="text-slate-700 leading-relaxed">Целостное представление о природе, обществе, человеке, находящее выражение в системе ценностей и идеалов личности, социальной группы, общества.</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-slate-400">
+                                                    <i className="fas fa-tools text-5xl mb-4"></i>
+                                                    <p>Материалы раздела в разработке</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* --- ПЕРСОНАЛИИ --- */}
+                                    {activeTab === 'persons' && (
+                                        <div className="animate-fade-in">
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center text-slate-800"><i className="fas fa-users mr-3 text-blue-500"></i> Ключевые фигуры</h2>
+                                            {selectedIsland.id === 1 ? (
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                    <div className="border border-slate-200 rounded-2xl p-6 text-center hover:border-blue-300 transition shadow-sm hover:shadow-md">
+                                                        <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full mx-auto flex items-center justify-center text-3xl mb-4">
+                                                            <i className="fas fa-user-tie"></i>
+                                                        </div>
+                                                        <h3 className="font-bold text-lg mb-2 text-slate-800">Абрахам Маслоу</h3>
+                                                        <p className="text-sm text-slate-500 mb-4 h-10">Американский психолог, основатель гуманистической психологии.</p>
+                                                        <div className="bg-slate-50 p-4 rounded-xl text-sm text-left border border-slate-100 text-slate-700">
+                                                            <strong className="text-blue-700">Вклад:</strong> Автор знаменитой иерархии (пирамиды) человеческих потребностей — от физиологических до потребности в самоактуализации.
+                                                        </div>
+                                                    </div>
+                                                    <div className="border border-slate-200 rounded-2xl p-6 text-center hover:border-blue-300 transition shadow-sm hover:shadow-md">
+                                                        <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full mx-auto flex items-center justify-center text-3xl mb-4">
+                                                            <i className="fas fa-user-graduate"></i>
+                                                        </div>
+                                                        <h3 className="font-bold text-lg mb-2 text-slate-800">Алексей Леонтьев</h3>
+                                                        <p className="text-sm text-slate-500 mb-4 h-10">Советский психолог, философ, педагог.</p>
+                                                        <div className="bg-slate-50 p-4 rounded-xl text-sm text-left border border-slate-100 text-slate-700">
+                                                            <strong className="text-blue-700">Вклад:</strong> Создатель психологической теории деятельности. Доказал, что развитие психики человека неразрывно связано с его деятельностью.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-slate-400">
+                                                    <i className="fas fa-user-clock text-5xl mb-4"></i>
+                                                    <p>Персоналии для данного раздела скоро появятся</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* --- ТЕСТЫ --- */}
+                                    {activeTab === 'tests' && (
+                                        <div className="animate-fade-in">
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center text-slate-800"><i className="fas fa-check-square mr-3 text-blue-500"></i> Классические тесты</h2>
+                                            {selectedIsland.id === 1 ? (
+                                                <div className="space-y-6">
+                                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                                                        <div className="bg-blue-50 text-blue-700 text-xs font-bold inline-block px-3 py-1 rounded-full mb-4">Вопрос 1 из 1</div>
+                                                        <p className="font-semibold text-slate-800 text-lg mb-6">Что из перечисленного относится к социальным потребностям человека?</p>
+                                                        
+                                                        <div className="space-y-3">
+                                                            {[
+                                                                { id: 0, text: 'Потребность в отдыхе' },
+                                                                { id: 1, text: 'Потребность в общении' },
+                                                                { id: 2, text: 'Потребность в дыхании' }
+                                                            ].map((opt) => (
+                                                                <label 
+                                                                    key={opt.id} 
+                                                                    className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                                                        testChecked && opt.id === 1 ? 'border-green-500 bg-green-50' : 
+                                                                        testChecked && testSelected === opt.id && opt.id !== 1 ? 'border-red-500 bg-red-50' :
+                                                                        testSelected === opt.id && !testChecked ? 'border-blue-500 bg-blue-50' : 
+                                                                        'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                                                                    }`}
+                                                                    onClick={() => !testChecked && setTestSelected(opt.id)}
+                                                                >
+                                                                    <div className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+                                                                        testSelected === opt.id ? 'border-blue-500' : 'border-slate-300'
+                                                                    }`}>
+                                                                        {testSelected === opt.id && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>}
+                                                                    </div>
+                                                                    <span className={`text-slate-700 font-medium ${testChecked && opt.id === 1 ? 'text-green-700' : testChecked && testSelected === opt.id && opt.id !== 1 ? 'text-red-700' : ''}`}>
+                                                                        {opt.text}
+                                                                    </span>
+                                                                    
+                                                                    {testChecked && opt.id === 1 && <i className="fas fa-check text-green-500 ml-auto text-xl"></i>}
+                                                                    {testChecked && testSelected === opt.id && opt.id !== 1 && <i className="fas fa-times text-red-500 ml-auto text-xl"></i>}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {!testChecked ? (
+                                                        <button onClick={handleTestCheck} className="w-full sm:w-auto bg-blue-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-600 transition shadow-md active:scale-95">Проверить ответ</button>
+                                                    ) : (
+                                                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                                            <div className={`px-6 py-3 rounded-xl font-bold flex-1 text-center ${testSelected === 1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                                {testSelected === 1 ? 'Отличная работа! Правильно.' : 'Ошибка. Правильный ответ: Потребность в общении.'}
+                                                            </div>
+                                                            <button onClick={() => {setTestChecked(false); setTestSelected(null);}} className="w-full sm:w-auto bg-slate-200 text-slate-700 px-8 py-3 rounded-xl font-bold hover:bg-slate-300 transition">Пройти заново</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-slate-400">
+                                                    <i className="fas fa-clipboard-list text-5xl mb-4"></i>
+                                                    <p>Тесты загружаются...</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* --- КЕЙСЫ --- */}
+                                    {activeTab === 'cases' && (
+                                        <div className="animate-fade-in">
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center text-slate-800"><i className="fas fa-comment mr-3 text-blue-500"></i> Анализ ситуаций</h2>
+                                            {selectedIsland.id === 1 ? (
+                                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+                                                    <div className="flex items-center mb-4">
+                                                        <div className="bg-blue-500 text-white p-2 rounded-lg mr-3 shadow-sm">
+                                                            <i className="fas fa-tasks"></i>
+                                                        </div>
+                                                        <h3 className="font-bold text-blue-800 text-lg">Ситуационная задача</h3>
+                                                    </div>
+                                                    <p className="text-slate-700 mb-6 text-lg leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-white">
+                                                        Гражданин А. после окончания школы поступил в университет, где записался в студенческий театральный кружок. Каждые выходные он вместе с другими студентами организует бесплатные спектакли для детей из детских домов.
+                                                    </p>
+                                                    <div className="bg-white/60 p-5 rounded-xl border border-blue-100">
+                                                        <p className="font-bold text-slate-800 mb-3 flex items-center"><i className="fas fa-question-circle text-blue-500 mr-2"></i> Вопросы для размышления:</p>
+                                                        <ul className="list-none text-slate-700 space-y-3">
+                                                            <li className="flex items-start"><i className="fas fa-angle-right mt-1 mr-2 text-blue-400"></i> Какие агенты социализации оказали влияние на гражданина А.?</li>
+                                                            <li className="flex items-start"><i className="fas fa-angle-right mt-1 mr-2 text-blue-400"></i> Удовлетворение каких потребностей (по пирамиде Маслоу) иллюстрирует данный пример?</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-slate-400">
+                                                    <i className="fas fa-briefcase text-5xl mb-4"></i>
+                                                    <p>Кейсы находятся в разработке.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* --- ИГРА ЗА / ПРОТИВ --- */}
+                                    {activeTab === 'game' && (
+                                        <div className="animate-fade-in">
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-slate-800">Дискуссия: За или Против?</h2>
+                                            {selectedIsland.id === 1 ? (
+                                                <div>
+                                                    <div className="bg-slate-100 p-6 sm:p-8 rounded-2xl text-center mb-8 border border-slate-200 relative overflow-hidden">
+                                                        <i className="fas fa-quote-left absolute top-4 left-4 text-4xl text-slate-200 opacity-50"></i>
+                                                        <i className="fas fa-quote-right absolute bottom-4 right-4 text-4xl text-slate-200 opacity-50"></i>
+                                                        <p className="text-lg sm:text-xl font-medium text-slate-800 leading-relaxed relative z-10 px-4 py-2">
+                                                            «Абсолютная свобода человека невозможна, так как свобода одного человека заканчивается там, где начинается свобода другого».
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {voteResult === null ? (
+                                                        <div className="animate-fade-in">
+                                                            <p className="text-center text-slate-500 mb-6 font-medium">Согласны ли вы с данным утверждением? Сделайте выбор.</p>
+                                                            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8">
+                                                                <button onClick={() => setVoteResult('za')} className="flex-1 flex flex-col items-center p-6 bg-white hover:bg-green-50 text-green-600 rounded-2xl border-2 border-green-200 hover:border-green-500 transition-all shadow-sm hover:shadow-md transform active:scale-95 group">
+                                                                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                                                                        <i className="fas fa-thumbs-up text-3xl"></i>
+                                                                    </div>
+                                                                    <span className="font-bold text-lg">Я согласен</span>
+                                                                </button>
+                                                                <button onClick={() => setVoteResult('protiv')} className="flex-1 flex flex-col items-center p-6 bg-white hover:bg-red-50 text-red-500 rounded-2xl border-2 border-red-200 hover:border-red-500 transition-all shadow-sm hover:shadow-md transform active:scale-95 group">
+                                                                    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                                                                        <i className="fas fa-thumbs-down text-3xl"></i>
+                                                                    </div>
+                                                                    <span className="font-bold text-lg">Я против</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto shadow-md animate-fade-in">
+                                                            <h3 className="text-xl font-bold text-center text-slate-800 mb-8">Статистика ответов учеников:</h3>
+                                                            
+                                                            <div className="relative w-full h-10 bg-slate-100 rounded-full overflow-hidden flex mb-4 shadow-inner">
+                                                                <div className="bg-green-500 flex items-center pl-4 text-white font-bold text-sm sm:text-base transition-all duration-1000" style={{ width: '74%' }}>74%</div>
+                                                                <div className="bg-red-500 flex items-center justify-end pr-4 text-white font-bold text-sm sm:text-base transition-all duration-1000" style={{ width: '26%' }}>26%</div>
+                                                            </div>
+                                                            
+                                                            <div className="flex justify-between text-sm sm:text-base font-medium mb-8 px-2">
+                                                                <span className="text-green-600"><i className="fas fa-thumbs-up mr-2"></i> Согласны</span>
+                                                                <span className="text-red-500"><i className="fas fa-thumbs-down mr-2"></i> Не согласны</span>
+                                                            </div>
+                                                            
+                                                            <div className={`text-center p-4 rounded-xl border ${voteResult === 'za' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                                                                Ваш выбор: <strong>{voteResult === 'za' ? 'Согласен' : 'Не согласен'}</strong>
+                                                            </div>
+
+                                                            <div className="mt-6 text-center">
+                                                                <button onClick={() => setVoteResult(null)} className="text-blue-500 hover:text-blue-700 font-medium underline text-sm">Сбросить выбор</button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-slate-400">
+                                                    <i className="fas fa-gamepad text-5xl mb-4"></i>
+                                                    <p>Игра для этого раздела загружается...</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // --- ЭКРАН 4: Методический блок (Учитель) ---
+            const TeacherDashboard = () => {
+                const [viewMode, setViewMode] = useState('constructor');
+                const [lessonPlan, setLessonPlan] = useState([]);
+                
+                const totalTime = lessonPlan.reduce((acc, curr) => acc + curr.time, 0);
+                const isOverTime = totalTime > 45;
+
+                const handleDownloadPresentation = (name) => {
+                    showToast(`Презентация "${name}" добавлена в загрузки.`, 'success');
+                };
+
+                const renderTags = (tags) => {
+                    return tags.map(tag => {
+                        let colorClass = 'bg-slate-100 text-slate-600 border-slate-200';
+                        if (tag === 'Групповая работа') colorClass = 'bg-purple-100 text-purple-700 border-purple-200';
+                        if (tag === 'Фронтальный опрос') colorClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                        if (tag === 'Индивидуальная работа') colorClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                        if (tag === 'ИКТ') colorClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+
+                        return (
+                            <span key={tag} className={`text-[10px] uppercase font-bold px-2 py-1 rounded border ${colorClass} mr-2 mt-2 inline-block`}>
+                                {tag}
+                            </span>
+                        );
+                    });
+                };
+
+                // Расширенный банк универсальных заданий
+                const bankItems = [
+                    { id: 1, stage: 'Актуализация', title: 'Терминологический диктант', desc: 'Базовая проверка знаний терминов.', time: 7, tags: ['Индивидуальная работа'] },
+                    { id: 2, stage: 'Актуализация', title: 'Блиц-опрос "Правда/Ложь"', desc: 'Быстрые вопросы по пройденной теме.', time: 5, tags: ['Фронтальный опрос'] },
+                    { id: 8, stage: 'Актуализация', title: 'Мозговой штурм', desc: 'Генерация ассоциаций к ключевому понятию урока.', time: 5, tags: ['Групповая работа', 'Фронтальный опрос'] },
+                    { id: 9, stage: 'Актуализация', title: 'Проблемный вопрос', desc: 'Постановка парадоксальной ситуации для вызова интереса к теме.', time: 5, tags: ['Фронтальный опрос'] },
+                    
+                    { id: 3, stage: 'Изучение нового', title: 'Просмотр видеофрагмента', desc: 'Короткий ролик с последующим обсуждением.', time: 8, tags: ['ИКТ'] },
+                    { id: 4, stage: 'Изучение нового', title: 'Анализ кейса в парах', desc: 'Разбор жизненной ситуации с применением теории.', time: 12, tags: ['Групповая работа'] },
+                    { id: 5, stage: 'Изучение нового', title: 'Интерактивная лекция', desc: 'Рассказ учителя с записью тезисов.', time: 15, tags: ['Фронтальный опрос'] },
+                    { id: 10, stage: 'Изучение нового', title: 'Работа с инфографикой', desc: 'Анализ статистических данных или схем по теме.', time: 10, tags: ['Индивидуальная работа', 'ИКТ'] },
+                    { id: 11, stage: 'Изучение нового', title: 'Ментальная карта', desc: 'Схематичное изображение связей между новыми понятиями.', time: 15, tags: ['Групповая работа'] },
+                    { id: 12, stage: 'Изучение нового', title: 'Анализ источника', desc: 'Чтение и анализ фрагмента нормативного акта или статьи.', time: 15, tags: ['Индивидуальная работа'] },
+                    
+                    { id: 6, stage: 'Закрепление', title: 'Игра "За / Против"', desc: 'Дискуссия на основе спорного утверждения.', time: 10, tags: ['Групповая работа'] },
+                    { id: 7, stage: 'Закрепление', title: 'Решение тестовой части', desc: 'Интерактивный тест формата экзамена.', time: 8, tags: ['Индивидуальная работа', 'ИКТ'] },
+                    { id: 13, stage: 'Закрепление', title: 'Составление синквейна', desc: 'Творческое осмысление темы через 5 строк (существительное, прилагательные, глаголы, фраза, синоним).', time: 7, tags: ['Индивидуальная работа'] },
+                    { id: 14, stage: 'Закрепление', title: 'Перекрестный опрос', desc: 'Ученики задают друг другу заранее подготовленные вопросы по изученному материалу.', time: 8, tags: ['Групповая работа', 'Фронтальный опрос'] },
+                ];
+
+                const addToPlan = (item) => {
+                    setLessonPlan([...lessonPlan, { ...item, uniqueId: Date.now() + Math.random() }]);
+                };
+
+                const removeFromPlan = (uniqueId) => {
+                    setLessonPlan(lessonPlan.filter(item => item.uniqueId !== uniqueId));
+                };
+
+                return (
+                    <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
+                        {/* Хедер учителя */}
+                        <div className="bg-slate-900 text-white shadow-md p-4 flex justify-between items-center z-20 shrink-0">
+                            <div className="flex items-center">
+                                <button onClick={() => setCurrentView('split')} className="mr-4 text-slate-400 hover:text-white transition w-8 h-8 rounded-full hover:bg-slate-800 flex items-center justify-center">
+                                    <i className="fas fa-arrow-left"></i>
+                                </button>
+                                <div className="font-bold text-lg flex items-center tracking-wide">
+                                    <i className="fas fa-briefcase mr-3 text-blue-400"></i>
+                                    Кабинет преподавателя
+                                </div>
+                            </div>
+                            <div className="text-sm text-slate-300 hidden sm:block bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                                <i className="fas fa-user-circle mr-2"></i>Преподаватель
+                            </div>
+                        </div>
+
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Боковая панель фильтров (только ПК) */}
+                            <div className="w-64 bg-white border-r shadow-sm p-6 overflow-y-auto shrink-0 hidden md:block z-10">
+                                <h3 className="font-bold flex items-center text-slate-800 mb-6 uppercase text-sm tracking-widest border-b pb-3">
+                                    <i className="fas fa-filter mr-2 text-blue-500"></i> Фильтры
+                                </h3>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-2 block uppercase">Раздел курса</label>
+                                        <select className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-sm cursor-pointer">
+                                            {sections.map(sec => <option key={sec.id}>{sec.name}</option>)}
+                                        </select>
+                                    </div>
+                                    {/* Блок выбора класса удален по просьбе */}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden relative">
+                                {/* Вкладки */}
+                                <div className="bg-white border-b px-4 sm:px-8 py-0 flex gap-4 sm:gap-8 shrink-0 overflow-x-auto hide-scroll pt-4">
+                                    <button onClick={() => setViewMode('presentations')} className={`pb-4 whitespace-nowrap font-bold transition-all border-b-2 ${viewMode === 'presentations' ? 'text-blue-600 border-blue-600' : 'text-slate-400 border-transparent hover:text-slate-700'}`}>
+                                        <i className="fas fa-file-powerpoint mr-2"></i>Готовые материалы
+                                    </button>
+                                    <button onClick={() => setViewMode('constructor')} className={`pb-4 whitespace-nowrap font-bold transition-all border-b-2 ${viewMode === 'constructor' ? 'text-blue-600 border-blue-600' : 'text-slate-400 border-transparent hover:text-slate-700'}`}>
+                                        <i className="fas fa-hammer mr-2"></i>Конструктор урока
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                                    {viewMode === 'presentations' ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+                                            {sections.map(sec => (
+                                                <div key={sec.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group">
+                                                    <div className={`h-40 flex items-center justify-center relative overflow-hidden ${sec.status === 'active' ? 'bg-gradient-to-br from-blue-50 to-indigo-100' : 'bg-slate-100'}`}>
+                                                        <i className={`fas fa-chalkboard text-5xl ${sec.status === 'active' ? 'text-blue-300 group-hover:scale-110 transition-transform duration-500' : 'text-slate-300'}`}></i>
+                                                        {sec.status !== 'active' && <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center"><i className="fas fa-lock text-3xl text-slate-400"></i></div>}
+                                                    </div>
+                                                    <div className="p-5 flex-1 flex flex-col">
+                                                        <h4 className="font-bold text-slate-800 text-sm mb-4 flex-1 leading-snug">{sec.name}</h4>
+                                                        <button 
+                                                            onClick={() => sec.status === 'active' ? handleDownloadPresentation(sec.name) : null}
+                                                            className={`flex items-center justify-center w-full py-2.5 text-sm font-bold rounded-lg transition-all ${
+                                                                sec.status === 'active' 
+                                                                ? 'bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white' 
+                                                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                            }`}
+                                                        >
+                                                            <i className="fas fa-download mr-2"></i> Скачать ZIP
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* ИНТЕРФЕЙС КОНСТРУКТОРА УРОКА */
+                                        <div className="flex flex-col lg:flex-row h-full gap-6 animate-fade-in">
+                                            
+                                            {/* Левая часть: Банк заданий */}
+                                            <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-h-[500px] lg:h-[calc(100vh-200px)]">
+                                                <div className="bg-slate-50 p-5 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center shrink-0 gap-2">
+                                                    <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                                                        <i className="fas fa-layer-group text-blue-500 mr-3"></i> Банк заданий
+                                                    </h3>
+                                                    <span className="bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">Тема 1. Человек и общество</span>
+                                                </div>
+                                                
+                                                <div className="flex-1 overflow-y-auto p-5 space-y-8">
+                                                    {['Актуализация', 'Изучение нового', 'Закрепление'].map(stageName => (
+                                                        <div key={stageName}>
+                                                            <div className="flex items-center mb-4">
+                                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stageName}</h4>
+                                                                <div className="ml-4 flex-1 h-px bg-slate-100"></div>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                {bankItems.filter(item => item.stage === stageName).map(item => (
+                                                                    <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-4 group relative overflow-hidden">
+                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                                        <div className="flex-1">
+                                                                            <div className="flex justify-between items-start mb-2">
+                                                                                <h5 className="font-bold text-slate-800 text-base">{item.title}</h5>
+                                                                                <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
+                                                                                    <i className="far fa-clock mr-1.5 text-blue-500"></i> {item.time} мин
+                                                                                </span>
+                                                                            </div>
+                                                                            <p className="text-sm text-slate-500 mb-3 leading-relaxed">{item.desc}</p>
+                                                                            <div className="flex flex-wrap">
+                                                                                {renderTags(item.tags)}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center justify-end sm:justify-center sm:border-l border-slate-100 sm:pl-5">
+                                                                            <button 
+                                                                                onClick={() => addToPlan(item)}
+                                                                                className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-300 flex items-center justify-center shadow-sm active:scale-90"
+                                                                                title="Добавить в урок"
+                                                                            >
+                                                                                <i className="fas fa-plus"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Правая часть: Таймлайн (План урока) */}
+                                            <div className="w-full lg:w-[420px] flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden shrink-0 min-h-[500px] lg:h-[calc(100vh-200px)]">
+                                                
+                                                <div className={`p-6 border-b transition-colors duration-500 ${isOverTime ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-100'} shrink-0`}>
+                                                    <div className="flex justify-between items-end mb-3">
+                                                        <h3 className="font-bold text-slate-800 text-lg flex items-center">
+                                                            <i className="fas fa-list-ol mr-2 text-slate-400"></i> Мой план урока
+                                                        </h3>
+                                                        <div className={`text-2xl font-black tracking-tight ${isOverTime ? 'text-red-600' : 'text-blue-600'}`}>
+                                                            {totalTime} <span className="text-sm font-medium text-slate-500">/ 45 мин</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="h-2.5 w-full bg-white/50 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
+                                                        <div 
+                                                            className={`h-full transition-all duration-500 ease-out ${isOverTime ? 'bg-red-500' : 'bg-gradient-to-r from-blue-400 to-blue-600'}`} 
+                                                            style={{ width: `${Math.min((totalTime / 45) * 100, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    
+                                                    {isOverTime && (
+                                                        <div className="mt-3 bg-red-100 text-red-700 text-xs font-bold p-2 rounded-lg flex items-center justify-center animate-pulse">
+                                                            <i className="fas fa-exclamation-triangle mr-2"></i> Превышен лимит времени урока!
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 overflow-y-auto p-5 pb-8 bg-slate-50 relative">
+                                                    {lessonPlan.length === 0 ? (
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                                                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+                                                                <i className="fas fa-clipboard-list text-4xl text-slate-300"></i>
+                                                            </div>
+                                                            <p className="font-medium text-slate-600 mb-1">План пока пуст</p>
+                                                            <p className="text-sm">Добавляйте задания из банка слева, чтобы собрать урок</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-4 relative pt-2">
+                                                            <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-blue-200 z-0"></div>
+                                                            
+                                                            {lessonPlan.map((item, index) => (
+                                                                <div key={item.uniqueId} className="relative z-10 flex gap-4 group animate-fade-in-up">
+                                                                    <div className="mt-2 w-8 h-8 rounded-full bg-blue-500 border-[3px] border-slate-50 flex-shrink-0 flex items-center justify-center shadow-md relative z-10">
+                                                                        <span className="text-white text-[10px] font-bold">{index + 1}</span>
+                                                                    </div>
+                                                                    
+                                                                    <div className="flex-1 bg-white border border-slate-200 rounded-xl p-4 shadow-sm group-hover:shadow-md group-hover:border-blue-300 transition-all relative">
+                                                                        <div className="flex justify-between items-start">
+                                                                            <div className="pr-8">
+                                                                                <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">{item.stage}</div>
+                                                                                <h5 className="font-bold text-sm text-slate-800 leading-snug mb-2">{item.title}</h5>
+                                                                                <div className="inline-flex items-center bg-slate-50 border border-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded">
+                                                                                    <i className="far fa-clock mr-1 text-slate-400"></i>{item.time} мин
+                                                                                </div>
+                                                                            </div>
+                                                                            
+                                                                            <button 
+                                                                                onClick={() => removeFromPlan(item.uniqueId)}
+                                                                                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-slate-300 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+                                                                                title="Удалить"
+                                                                            >
+                                                                                <i className="fas fa-times"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <>
+                    {/* Область уведомлений */}
+                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+                    
+                    {/* Основной роутер экранов */}
+                    {(() => {
+                        switch (currentView) {
+                            case 'student-map': return <StudentMap />;
+                            case 'student-module': return <StudentModule />;
+                            case 'teacher-login': return <TeacherLogin />;
+                            case 'teacher-dash': return <TeacherDashboard />;
+                            case 'split':
+                            default: return <SplitScreen />;
+                        }
+                    })()}
+                </>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
